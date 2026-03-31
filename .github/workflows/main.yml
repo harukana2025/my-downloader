@@ -1,31 +1,32 @@
 name: Python Downloader
 on:
-  workflow_dispatch: # 手動実行用
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: コードを取得
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4 # 最新版を使用
 
-      - name: Python準備
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: 必要な道具をインストール
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install yt-dlp requests
+          pip install yt-dlp
 
-      - name: Python実行
-        run: python main.py  # ここでファイル名が間違っているとエラー2が出ます
+      - name: Run script
+        # ここで 'main.py' がリポジトリ直下に存在する必要があります
+        run: python main.py
 
-      - name: 保存
+      - name: Commit and Push
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
-          git commit -m "ファイルを保存しました" || echo "変更なし"
+          git commit -m "Add downloaded file" || echo "No changes"
           git push

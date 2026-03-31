@@ -1,58 +1,50 @@
-# YouTube Audio Downloader
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Audio Downloader</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        input, select, button { margin: 10px 0; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>YouTube Audio Downloader</h1>
+    <form id="downloader-form">
+        <label for="url">YouTube Video URL:</label><br>
+        <input type="text" id="url" name="url" required><br>
+        <label for="format">Choose Audio Format:</label><br>
+        <select id="format" name="format" required>
+            <option value="mp3">MP3</option>
+            <option value="wav">WAV</option>
+        </select><br>
+        <button type="submit">Download</button>
+    </form>
+    <div class="error" id="error-message"></div>
 
-This project is a Python-based audio downloader for YouTube videos that supports downloading Creative Commons content.
+    <script>
+        document.getElementById('downloader-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const url = document.getElementById('url').value;
+            const format = document.getElementById('format').value;
+            const errorMessage = document.getElementById('error-message');
 
-## Features
-- Download audio from YouTube videos
-- Support for Creative Commons content
-- Backend server setup
+            if (!isValidYouTubeUrl(url)) {
+                errorMessage.textContent = 'Please enter a valid YouTube URL.';
+                return;
+            }
 
-## Prerequisites
-- Python 3.x
-- Required libraries: `flask`, `youtube_dl`
+            // Proceed with the download logic...
+            errorMessage.textContent = '';
+            alert('Download started for ' + format + ' audio.');  // Placeholder for actual download logic
+        });
 
-## Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/harukana2025/my-downloader.git
-   cd my-downloader
-   ```
-2. Install required packages:
-   ```bash
-   pip install Flask youtube_dl
-   ```
-
-## Usage
-1. Start the backend server:
-   ```bash
-   python app.py  # Make sure to adjust according to your app script
-   ```
-2. Use the web interface to input YouTube URLs and download audio files.
-
-## Backend Server Setup
-```python
-from flask import Flask, request, send_file
-import youtube_dl
-
-app = Flask(__name__)
-
-@app.route('/download', methods=['POST'])
-def download():
-    url = request.json['url']
-    ydl_opts = {
-        'format': 'bestaudio',
-        'postprocessors': [{
-            'type': 'audiofile',
-            'format': 'mp3',
-        }],
-    }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
-        # Add code to send the downloaded file back. 
-
-if __name__ == '__main__':
-    app.run(debug=True)
-```
-
-## License
-This project is licensed under the MIT License.
+        function isValidYouTubeUrl(url) {
+            const regex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+            return regex.test(url);
+        }
+    </script>
+</body>
+</html>

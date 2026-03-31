@@ -1,0 +1,24 @@
+name: Python Downloader
+on:
+  workflow_dispatch: # 手動実行用
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Python準備
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: 実行
+        run: |
+          pip install requests yt-dlp
+          python main.py
+      - name: 保存
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Save file" || echo "No changes"
+          git push

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISO Emulator</title>
+    <style>
+        body {
+            background-color: #2c2c2c;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .container {
+            text-align: center;
+        }
+        #uploadArea {
+            width: 300px;
+            height: 200px;
+            border: 2px dashed #ffffff;
+            margin: 20px auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #progressBar {
+            width: 100%;
+            background: #555;
+            border-radius: 5px;
+            overflow: hidden;
+            display: none;
+        }
+        #progress {
+            height: 20px;
+            background: #76c7c0;
+            width: 0;
+        }
+        #controls {
+            margin: 20px;
+        }
+        button {
+            background: #76c7c0;
+            border: none;
+            padding: 10px 20px;
+            color: black;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a9b95;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ISO File Emulator</h1>
+        <div id="uploadArea">Drag and drop your ISO file here</div>
+        <input type="file" id="fileInput" style="display: none;">
+        <div id="progressBar"><div id="progress"></div></div>
+        <div id="controls">
+            <button id="startBtn">Start Emulator</button>
+            <button id="stopBtn">Stop Emulator</button>
+        </div>
+        <div id="statusMessages"></div>
+    </div>
+
+    <script src="https://v86js.github.io/v86/v86.js"></script>
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusMessages = document.getElementById('statusMessages');
+        let emulator;
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/x-iso') {
+                fileInput.files = e.dataTransfer.files;
+                uploadFile(file);
+            } else {
+                showError('Please upload a valid ISO file.');
+            }
+        });
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        });
+
+        function uploadFile(file) {
+            const reader = new FileReader();
+            reader.onloadstart = () => {
+                progressBar.style.display = 'block';
+                progress.style.width = '0%';
+            };
+            reader.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    progress.style.width = percent + '%';
+                }
+            };
+            reader.onload = () => {
+                progress.style.width = '100%';
+                startEmulator(reader.result);
+            };
+            reader.onerror = () => {
+                showError('Error reading file.');
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function startEmulator(arrayBuffer) {
+            if (emulator) {
+                emulator.stop();
+            }
+            emulator = new V86.Core({
+                // Configuration options
+                memory: {
+                    size: 256 * 1024 * 1024 // 256MB
+                },
+                vga: {
+                    enabled: true
+                },
+                sdl: {
+                    // Assuming suitable parameters are set here
+                },
+                drive_a: {
+                    type: "floppy",
+                    url: arrayBuffer
+                }
+            });
+            statusMessages.innerText = 'Emulator started!';
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (emulator) {
+                emulator.start();
+            } else {
+                showError('No ISO file uploaded.');
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (emulator) {
+                emulator.stop();
+            }
+        });
+
+        function showError(message) {
+            statusMessages.innerText = message;
+            statusMessages.style.color = 'red';
+        }
+    </script>
+</body>
+</html>

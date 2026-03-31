@@ -6,19 +6,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: コードを取得
+        uses: actions/checkout@v3
+
       - name: Python準備
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - name: 実行
+
+      - name: 必要な道具をインストール
         run: |
-          pip install requests yt-dlp
-          python main.py
+          python -m pip install --upgrade pip
+          pip install yt-dlp requests
+
+      - name: Python実行
+        run: python main.py  # ここでファイル名が間違っているとエラー2が出ます
+
       - name: 保存
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
-          git commit -m "Save file" || echo "No changes"
+          git commit -m "ファイルを保存しました" || echo "変更なし"
           git push

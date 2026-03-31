@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Audio Downloader</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; max-width: 600px; }
+        input, select, button { margin: 10px 0; padding: 8px; font-size: 16px; }
+        button { cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px; }
+        button:disabled { background-color: #ccc; }
+        .error { color: red; margin-top: 10px; }
+        .success { color: green; margin-top: 10px; }
+        #loading { display: none; }
+    </style>
+</head>
+<body>
+    <h1>YouTube Audio Downloader</h1>
+    <form id="downloader-form">
+        <label for="url">YouTube Video URL:</label><br>
+        <input type="text" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required><br>
+        
+        <label for="format">Audio Format:</label><br>
+        <select id="format" name="format" required>
+            <option value="mp3">MP3</option>
+            <option value="wav">WAV</option>
+        </select><br>
+        
+        <button type="submit" id="download-btn">Download</button>
+    </form>
+    
+    <div id="loading">⏳ Processing... Please wait...</div>
+    <div class="error" id="error-message"></div>
+    <div class="success" id="success-message"></div>
+
+    <script>
+        document.getElementById('downloader-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const url = document.getElementById('url').value;
+            const format = document.getElementById('format').value;
+            const errorMsg = document.getElementById('error-message');
+            const successMsg = document.getElementById('success-message');
+            const loadingDiv = document.getElementById('loading');
+            const btn = document.getElementById('download-btn');
+            
+            errorMsg.textContent = '';
+            successMsg.textContent = '';
+            
+            if (!isValidYouTubeUrl(url)) {
+                errorMsg.textContent = '❌ Please enter a valid YouTube URL.';
+                return;
+            }
+            
+            loadingDiv.style.display = 'block';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('http://localhost:5000/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url, format: format })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Download failed');
+                }
+                
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = `audio.${format}`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                successMsg.textContent = '✅ Download started!';
+            } catch (error) {
+                errorMsg.textContent = '❌ Error: ' + error.message;
+            } finally {
+                loadingDiv.style.display = 'none';
+                btn.disabled = false;
+            }
+        });
+        
+        function isValidYouTubeUrl(url) {
+            const regex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+            return regex.test(url);
+        }
+    </script>
+</body>
+</html>

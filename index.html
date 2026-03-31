@@ -4,47 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Audio Downloader</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        input, select, button { margin: 10px 0; }
-        .error { color: red; }
-    </style>
+    <script>
+        async function downloadAudio() {
+            const urlInput = document.getElementById('url').value;
+            const loadingMessage = document.getElementById('loading');
+            const errorMessage = document.getElementById('error');
+            const downloadLink = document.getElementById('download-link');
+            errorMessage.textContent = '';
+            loadingMessage.textContent = 'Loading...';
+            downloadLink.style.display = 'none';
+
+            try {
+                const response = await fetch('https://your-flask-backend/api/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: urlInput })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    downloadLink.href = data.downloadUrl;
+                    downloadLink.textContent = 'Click here to download your audio';
+                    downloadLink.style.display = 'block';
+                } else {
+                    throw new Error(data.message || 'Failed to download audio');
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Error: ' + error.message;
+            } finally {
+                loadingMessage.textContent = '';
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>YouTube Audio Downloader</h1>
-    <form id="downloader-form">
-        <label for="url">YouTube Video URL:</label><br>
-        <input type="text" id="url" name="url" required><br>
-        <label for="format">Choose Audio Format:</label><br>
-        <select id="format" name="format" required>
-            <option value="mp3">MP3</option>
-            <option value="wav">WAV</option>
-        </select><br>
-        <button type="submit">Download</button>
-    </form>
-    <div class="error" id="error-message"></div>
-
-    <script>
-        document.getElementById('downloader-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const url = document.getElementById('url').value;
-            const format = document.getElementById('format').value;
-            const errorMessage = document.getElementById('error-message');
-
-            if (!isValidYouTubeUrl(url)) {
-                errorMessage.textContent = 'Please enter a valid YouTube URL.';
-                return;
-            }
-
-            // Proceed with the download logic...
-            errorMessage.textContent = '';
-            alert('Download started for ' + format + ' audio.');  // Placeholder for actual download logic
-        });
-
-        function isValidYouTubeUrl(url) {
-            const regex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-            return regex.test(url);
-        }
-    </script>
+    <input type="text" id="url" placeholder="Enter YouTube video URL">
+    <button onclick="downloadAudio()">Download Audio</button>
+    <p id="loading"></p>
+    <p id="error" style="color: red;"></p>
+    <a id="download-link" style="display: none;" download>Click here to download your audio</a>
 </body>
 </html>

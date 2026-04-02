@@ -1,0 +1,12 @@
+name: Keep-Alive
+on:
+  schedule:
+    - cron: '*/20 * * * *' # 20分おきに実行
+  workflow_dispatch:      # 手動実行用ボタン
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Codespace
+        run: curl -sL https://github.dev
